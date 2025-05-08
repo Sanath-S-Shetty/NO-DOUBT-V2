@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "549553278454",
+    "project_id": "no-doubt-f8f3e",
+    "storage_bucket": "no-doubt-f8f3e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:549553278454:android:a84673f0b3947d9034cbd7",
+        "android_client_info": {
+          "package_name": "com.example.no_doubt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBA2_QuXjFUk6fQays9taBPM1nla9C02og"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
