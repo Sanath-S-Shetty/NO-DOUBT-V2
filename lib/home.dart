@@ -7,8 +7,8 @@ import 'package:no_doubt/profile.dart';
 
 
 
-class homePage extends StatelessWidget {
-  const homePage({super.key});
+class Homepage extends StatelessWidget {
+  const Homepage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -95,13 +95,13 @@ class HomeScreen extends StatelessWidget {
            if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const option()),
+              MaterialPageRoute(builder: (context) => const Option()),
             );
           }
            if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const homePage()),
+              MaterialPageRoute(builder: (context) => const Homepage()),
             );
           }
 

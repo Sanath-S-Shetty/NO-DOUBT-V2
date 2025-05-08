@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:no_doubt/askdoubtpage.dart';
 import 'package:no_doubt/home.dart';
 
-class option extends StatelessWidget {
-  const option({super.key});
+class Option extends StatelessWidget {
+  const Option({super.key});
 
   @override
   Widget build(BuildContext context) {
+   
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -27,22 +28,22 @@ class option extends StatelessWidget {
             ),
             SizedBox(height: 30),
             buildOptionButton(context, 'Ask a Doubt', Icons.question_answer, Colors.purpleAccent, () {
-             Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const AskDoubtPage()),
-  );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AskDoubtPage()),
+              );
             }),
             SizedBox(height: 20),
             buildOptionButton(context, 'Answer a Doubt', Icons.lightbulb, Colors.greenAccent, () {
-             Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const homePage()),
-  );
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Homepage()),
+              );
             }),
           ],
         ),
       ),
-       bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
@@ -50,22 +51,21 @@ class option extends StatelessWidget {
           if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const askDoubtPage()),
+              MaterialPageRoute(builder: (context) => const AskDoubtPage()),
             );
           }
-           if (index == 0) {
+          if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const option()),
+              MaterialPageRoute(builder: (context) => const Option()),
             );
           }
-           if (index == 1) {
+          if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const homePage()),
+              MaterialPageRoute(builder: (context) => const Homepage()),
             );
           }
-
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

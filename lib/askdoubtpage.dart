@@ -92,13 +92,13 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
            if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const option()),
+              MaterialPageRoute(builder: (context) => const Option()),
             );
           }
            if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const homePage()),
+              MaterialPageRoute(builder: (context) => const Homepage()),
             );
           }
 

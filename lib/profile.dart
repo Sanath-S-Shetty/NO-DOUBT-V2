@@ -119,14 +119,16 @@ class ProfilePage extends StatelessWidget {
             // Sign Out button
             Center(
               child: ElevatedButton(
-                onPressed: () {
-                 FirebaseAuth.instance.signOut();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                  );
-                 // Replace with actual sign out logic if needed
-                },
+               onPressed: () async {
+      // Sign out from Firebase
+      await FirebaseAuth.instance.signOut();
+
+      // Navigate to LoginPage and remove all previous pages from the stack
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
