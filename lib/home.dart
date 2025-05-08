@@ -3,6 +3,7 @@ import 'package:no_doubt/askdoubtpage.dart';
 import 'package:no_doubt/option.dart';
 import 'package:no_doubt/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:no_doubt/profile.dart';
 
 
 
@@ -42,9 +43,9 @@ class HomeScreen extends StatelessWidget {
             child: GestureDetector(
       onTap: () {
        
-        FirebaseAuth.instance.signOut();
+        
          Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const ProfilePage()),
         );
       },
       child: const Icon(Icons.person_outline, color: Colors.black),
