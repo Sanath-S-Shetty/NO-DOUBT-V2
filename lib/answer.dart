@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:no_doubt/solution.dart'; // Make sure this import is correct
 
 class AnswerPage extends StatefulWidget {
-  const AnswerPage({super.key});
+  final String questionId;
+
+  const AnswerPage({super.key, required this.questionId});
 
   @override
   State<AnswerPage> createState() => _AnswerPageState();

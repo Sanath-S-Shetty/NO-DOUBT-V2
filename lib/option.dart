@@ -37,7 +37,7 @@ class Option extends StatelessWidget {
             buildOptionButton(context, 'Answer a Doubt', Icons.lightbulb, Colors.greenAccent, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const Homepage()),
+                MaterialPageRoute(builder: (context) => const homePage()),
               );
             }),
           ],
@@ -63,7 +63,7 @@ class Option extends StatelessWidget {
           if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const Homepage()),
+              MaterialPageRoute(builder: (context) => const homePage()),
             );
           }
         },
