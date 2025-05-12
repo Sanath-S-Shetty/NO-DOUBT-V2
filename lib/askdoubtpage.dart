@@ -6,17 +6,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 
-class askDoubtPage extends StatelessWidget {
-  const askDoubtPage({super.key});
+// class askDoubtPage extends StatelessWidget {
+//   const askDoubtPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: const AskDoubtPage(),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: const AskDoubtPage(),
+//     );
+//   }
+// }
 
 class AskDoubtPage extends StatefulWidget {
   const AskDoubtPage({super.key});
@@ -70,7 +70,7 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
         'description': description,
         'tags': tags,
         'time': FieldValue.serverTimestamp(),
-        'posted_by': user.uid,
+        'posted_by': user.email,  
         'star': {}, // Initialize empty map for starring
       });
 

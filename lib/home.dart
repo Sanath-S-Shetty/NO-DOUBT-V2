@@ -69,24 +69,24 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 0,
+        currentIndex: 1,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
           if (index == 0) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const homePage()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => Option()));
           }
           if (index == 1) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const AskDoubtPage()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const homePage()));
           }
           if (index == 2) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const Option()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AskDoubtPage()));
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.question_answer), label: 'Solve Doubt'),
           BottomNavigationBarItem(icon: Icon(Icons.edit), label: 'Ask Doubt'),
-          BottomNavigationBarItem(icon: Icon(Icons.question_answer), label: 'Solve Doubts'),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:no_doubt/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +13,18 @@ class ProfilePage extends StatefulWidget {
 class _ProfileScreenState extends State<ProfilePage> {
 
   bool isLoading = false;
+  String username = "loading";
+  Future<void> fetchUsername() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final uid = user.uid;
+      final doc = await FirebaseFirestore.instance.collection('profile').doc(uid).get();
+      final data = doc.data();
+      setState(() {
+        username = data?['username'] ?? 'Anonymous';
+      });
+    }
+  }
 
 
   void signOut(BuildContext context) async {
