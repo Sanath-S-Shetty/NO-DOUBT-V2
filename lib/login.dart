@@ -1,45 +1,81 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:no_doubt/signup.dart';
-//import 'package:no_doubt/option.dart';
-
+import 'package:no_doubt/option.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
-    _createlogin createState() => _createlogin();
+  justlogin createState() => justlogin();
 }
 
-
-    class _createlogin extends State<LoginPage>{
-
-      final TextEditingController emailController = TextEditingController();
+class justlogin extends State<LoginPage> {
+  final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  
-  
-   @override
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
   void dispose() {
-   
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
   }
 
-   Future<void> justlogin() async {
-  try {
-    await FirebaseAuth.instance.signInWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    );
-  } on FirebaseAuthException catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.message ?? 'Login failed')),
-    );
+  Future<void> loginUser() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      if (emailController.text.isNotEmpty &&
+          passwordController.text.isNotEmpty) {
+        await _auth.signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Successfully logged in!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const Option()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = "Please fill in all fields";
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Please fill in all fields"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _errorMessage = e.message;
+      });
+
+      String errorMsg = "Invalid email or password";
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
-}
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -51,17 +87,29 @@ class LoginPage extends StatefulWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset('assets/nodoubt_logo.png', height: 100), // Replace with your logo
+            Image.asset(
+              'assets/nodoubt_logo.png',
+              height: 100,
+            ), // Replace with your logo
             SizedBox(height: 20),
             Text(
               'Login',
-              style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 20),
-             buildTextField(Icons.email, 'Email', emailController),
-              SizedBox(height: 10),
-           
-            buildTextField(Icons.lock, 'Password',passwordController, obscureText: true),
+            buildTextField(Icons.email, 'Email', emailController),
+            SizedBox(height: 10),
+
+            buildTextField(
+              Icons.lock,
+              'Password',
+              passwordController,
+              obscureText: true,
+            ),
             Align(
               alignment: Alignment.centerRight,
               child: Text(
@@ -83,18 +131,25 @@ class LoginPage extends StatefulWidget {
                 //           context,
                 //           MaterialPageRoute(builder: (context) => option()),
                 //         );
-                  await justlogin();
+               await loginUser(); 
               },
               child: Text(
                 'LOGIN',
-                style: TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             SizedBox(height: 20),
             RichText(
               text: TextSpan(
                 children: [
-                  TextSpan(text: "Don’t have an account? ", style: TextStyle(color: Colors.white)),
+                  TextSpan(
+                    text: "Don’t have an account? ",
+                    style: TextStyle(color: Colors.white),
+                  ),
                   WidgetSpan(
                     child: GestureDetector(
                       onTap: () {
@@ -105,7 +160,10 @@ class LoginPage extends StatefulWidget {
                       },
                       child: Text(
                         "Sign Up",
-                        style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.amber,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -118,11 +176,16 @@ class LoginPage extends StatefulWidget {
     );
   }
 
-  Widget buildTextField(IconData icon, String hint, TextEditingController controller, {bool obscureText = false}) {
+  Widget buildTextField(
+    IconData icon,
+    String hint,
+    TextEditingController controller, {
+    bool obscureText = false,
+  }) {
     return TextField(
-       controller: controller,
+      controller: controller,
       obscureText: obscureText,
-    
+
       style: TextStyle(color: Colors.white),
       decoration: InputDecoration(
         prefixIcon: Icon(icon, color: Colors.purpleAccent),
