@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:no_doubt/solution.dart'; // Make sure this import is correct
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:no_doubt/solution.dart';
 
 class AnswerPage extends StatefulWidget {
   final String questionId;
@@ -11,34 +13,12 @@ class AnswerPage extends StatefulWidget {
 }
 
 class _AnswerPageState extends State<AnswerPage> {
-  bool showSolutions = false;
+  bool showSolutions = true;
   String selectedFilter = 'Stars';
 
   final List<String> filters = ['Stars', 'Newest', 'Oldest'];
-
   final TextEditingController _solutionController = TextEditingController();
   final TextEditingController _discussionController = TextEditingController();
-
-  List<Map<String, dynamic>> solutions = [];
-  List<String> discussions = [];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize with dummy data
-    solutions = List.generate(5, (index) {
-      return {
-        'title': 'Solution #$index: Use recursion when the problem breaks into subproblems.',
-        'fullText':
-        'Solution #$index (Full): Recursion is useful for divide-and-conquer problems. It simplifies code for problems like tree traversal, backtracking, etc. Example: In-order traversal is simpler with recursion.',
-        'author': 'User$index',
-        'stars': 5 + index,
-        'starredByUser': false,
-      };
-    });
-
-    discussions = List.generate(5, (index) => 'User $index: I think it helps with divide-and-conquer.');
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,122 +29,59 @@ class _AnswerPageState extends State<AnswerPage> {
       ),
       body: Column(
         children: [
-          // Top part - Question display
-          Container(
-            color: Colors.black87,
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Why does recursion work better for some problems?',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.amber,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'I ve seen recursion used in tree traversals and backtracking, but I dont get why its preferred. Can someone explain?',
-                  style: TextStyle(fontSize: 16, color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
+          _buildQuestionHeader(),
+          _buildToggleButtons(),
+          Expanded(child: showSolutions ? _buildSolutionsView() : _buildDiscussionsView()),
+          _buildInputBar(),
+        ],
+      ),
+    );
+  }
 
-          // Toggle buttons
-          Container(
-            color: Colors.deepPurple,
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      showSolutions = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: !showSolutions ? Colors.amber : Colors.white24,
-                  ),
-                  child: const Text('Discussions'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      showSolutions = true;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: showSolutions ? Colors.amber : Colors.white24,
-                  ),
-                  child: const Text('Solutions'),
-                ),
-              ],
-            ),
+  Widget _buildQuestionHeader() {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('Doubt').doc(widget.questionId).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const LinearProgressIndicator();
+        var data = snapshot.data!.data() as Map<String, dynamic>;
+        return Container(
+          color: Colors.black87,
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(data['qtitle'] ?? '',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.amber)),
+              const SizedBox(height: 8),
+              Text(data['description'] ?? '', style: const TextStyle(fontSize: 16, color: Colors.white70)),
+            ],
           ),
+        );
+      },
+    );
+  }
 
-          // Content section - scrollable
-          Expanded(
-            child: Container(
-              color: Colors.black,
-              child: showSolutions ? _buildSolutionsView() : _buildDiscussionsView(),
+  Widget _buildToggleButtons() {
+    return Container(
+      color: Colors.deepPurple,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          ElevatedButton(
+            onPressed: () => setState(() => showSolutions = false),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: !showSolutions ? Colors.amber : Colors.white24,
             ),
+            child: const Text('Discussions'),
           ),
-
-          // Input section
-          Container(
-            padding: const EdgeInsets.all(12),
-            color: Colors.grey[900],
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: showSolutions ? _solutionController : _discussionController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      hintText: showSolutions ? 'Add a solution...' : 'Add to discussion...',
-                      hintStyle: const TextStyle(color: Colors.white54),
-                      filled: true,
-                      fillColor: Colors.grey[850],
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: () {
-                    final text = (showSolutions ? _solutionController : _discussionController).text.trim();
-                    if (text.isNotEmpty) {
-                      setState(() {
-                        if (showSolutions) {
-                          solutions.insert(0, {
-                            'title': 'New Solution: ${text.substring(0, text.length > 30 ? 30 : text.length)}...',
-                            'fullText': text,
-                            'author': 'CurrentUser',
-                            'stars': 0,
-                            'starredByUser': false,
-                          });
-                          _solutionController.clear();
-                        } else {
-                          discussions.insert(0, 'CurrentUser: $text');
-                          _discussionController.clear();
-                        }
-                      });
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
-                  child: const Text('Post'),
-                ),
-              ],
+          ElevatedButton(
+            onPressed: () => setState(() => showSolutions = true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: showSolutions ? Colors.amber : Colors.white24,
             ),
+            child: const Text('Solutions'),
           ),
         ],
       ),
@@ -174,9 +91,8 @@ class _AnswerPageState extends State<AnswerPage> {
   Widget _buildSolutionsView() {
     return Column(
       children: [
-        // Filter row
         Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.all(12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
@@ -185,79 +101,164 @@ class _AnswerPageState extends State<AnswerPage> {
               DropdownButton<String>(
                 value: selectedFilter,
                 dropdownColor: Colors.deepPurple,
-                items: filters.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: const TextStyle(color: Colors.amber)),
-                  );
+                items: filters.map((value) {
+                  return DropdownMenuItem(value: value, child: Text(value, style: const TextStyle(color: Colors.amber)));
                 }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedFilter = value!;
-                    // TODO: Implement sorting logic
-                  });
-                },
+                onChanged: (value) => setState(() => selectedFilter = value!),
               ),
             ],
           ),
         ),
-
-        // Solutions list
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: solutions.length,
-            itemBuilder: (context, index) {
-              final solution = solutions[index];
-
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SolutionDetailPage(
-                        solutionId: '$index',
-                        solutionText: solution['fullText'],
-                        author: solution['author'],
-                        initialStars: solution['stars'],
-                        initiallyStarred: solution['starredByUser'],
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('Doubt')
+                .doc(widget.questionId)
+                .collection('solutions')
+                .orderBy(selectedFilter == 'Stars'
+                    ? 'stars'
+                    : selectedFilter == 'Newest'
+                        ? 'timestamp'
+                        : 'timestamp',
+                    descending: selectedFilter != 'Oldest')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+              var docs = snapshot.data!.docs;
+              return ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: docs.length,
+                itemBuilder: (context, index) {
+                  var data = docs[index].data() as Map<String, dynamic>;
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SolutionDetailPage(
+                            solutionId: docs[index].id,
+                            solutionText: data['fullText'],
+                            author: data['author'],
+                            initialStars: data['stars'],
+                            initiallyStarred: false,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      color: Colors.grey[900],
+                      child: ListTile(
+                        title: Text(data['title'] ?? '', style: const TextStyle(color: Colors.white)),
+                        trailing: const Icon(Icons.star, color: Colors.amber),
                       ),
                     ),
                   );
                 },
-                child: Card(
-                  color: Colors.grey[900],
-                  child: ListTile(
-                    title: Text(
-                      solution['title'],
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    trailing: const Icon(Icons.star, color: Colors.amber),
-                  ),
-                ),
               );
             },
           ),
-        ),
+        )
       ],
     );
   }
 
   Widget _buildDiscussionsView() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(12),
-      itemCount: discussions.length,
-      itemBuilder: (context, index) {
-        return Card(
-          color: Colors.grey[850],
-          child: ListTile(
-            title: Text(
-              discussions[index],
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('Doubt')
+          .doc(widget.questionId)
+          .collection('discussions')
+          .orderBy('timestamp', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        var docs = snapshot.data!.docs;
+        return ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            var data = docs[index].data() as Map<String, dynamic>;
+            return Card(
+              color: Colors.grey[850],
+              child: ListTile(
+                title: Text('${data['author']}: ${data['text']}', style: const TextStyle(color: Colors.white)),
+              ),
+            );
+          },
         );
       },
     );
+  }
+
+  Widget _buildInputBar() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      color: Colors.grey[900],
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: showSolutions ? _solutionController : _discussionController,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: showSolutions ? 'Add a solution...' : 'Add to discussion...',
+                hintStyle: const TextStyle(color: Colors.white54),
+                filled: true,
+                fillColor: Colors.grey[850],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton(
+            onPressed: _postContent,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+            child: const Text('Post'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _postContent() async {
+    final user = FirebaseAuth.instance.currentUser;
+    final controller = showSolutions ? _solutionController : _discussionController;
+    final text = controller.text.trim();
+    if (text.isEmpty || user == null) return;
+
+    final now = FieldValue.serverTimestamp();
+
+    try {
+      if (showSolutions) {
+        await FirebaseFirestore.instance
+            .collection('Doubt')
+            .doc(widget.questionId)
+            .collection('solutions')
+            .add({
+          'title': 'New Solution: ${text.substring(0, text.length > 30 ? 30 : text.length)}...',
+          'fullText': text,
+          'author': user.email ?? 'Anonymous',
+          'stars': 0,
+          'timestamp': now,
+        });
+      } else {
+        await FirebaseFirestore.instance
+            .collection('Doubt')
+            .doc(widget.questionId)
+            .collection('discussions')
+            .add({
+          'text': text,
+          'author': user.email ?? 'Anonymous',
+          'timestamp': now,
+        });
+      }
+      controller.clear();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
   }
 }

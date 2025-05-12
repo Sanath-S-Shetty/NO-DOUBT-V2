@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SolutionDetailPage extends StatefulWidget {
   final String solutionId;
@@ -23,14 +25,7 @@ class SolutionDetailPage extends StatefulWidget {
 class _SolutionDetailPageState extends State<SolutionDetailPage> {
   late int stars;
   late bool isStarred;
-
   final TextEditingController _commentController = TextEditingController();
-
-  // Replace with Firebase logic later
-  final List<Map<String, String>> comments = [
-    {'user': 'Alice', 'text': 'Very helpful solution!'},
-    {'user': 'Bob', 'text': 'Thanks, recursion finally clicked.'},
-  ];
 
   @override
   void initState() {
@@ -45,18 +40,37 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
       stars += isStarred ? 1 : -1;
     });
 
-    // TODO: Update Firebase
+    // TODO: Update Firebase to reflect star change
+    // FirebaseFirestore.instance
+    //     .collection('solutions')
+    //     .doc(widget.solutionId)
+    //     .update({'stars': stars});
   }
 
-  void addComment() {
+  void addComment() async {
     final newComment = _commentController.text.trim();
     if (newComment.isNotEmpty) {
-      setState(() {
-        comments.add({'user': 'CurrentUser', 'text': newComment}); // Replace "CurrentUser" with actual logged-in user's name
-        _commentController.clear();
-      });
+      
+      final user = FirebaseAuth.instance.currentUser; // Replace with actual logged-in user's name
+      try {
+        await FirebaseFirestore.instance
+            .collection('solutions') // Main solutions collection
+            .doc(widget.solutionId) // Document for the specific solution
+            .collection('comments') // Subcollection for comments
+            .add({
+          'user': user?.email ?? 'Anonymous',
+          'text': newComment,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
 
-      // TODO: Save to Firebase
+        setState(() {
+          _commentController.clear();
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to post comment: $e')),
+        );
+      }
     }
   }
 
@@ -108,25 +122,48 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Comments list
-                    ...comments.map((comment) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: RichText(
-                          text: TextSpan(
-                            style: const TextStyle(color: Colors.white),
-                            children: [
-                              TextSpan(
-                                text: '${comment['user']}: ',
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber),
-                              ),
-                              TextSpan(text: comment['text']),
-                            ],
-                          ),
-                        ),
-                      );
-                    }).toList(),
+                    // StreamBuilder for fetching comments
+                    StreamBuilder<QuerySnapshot>(
+                      stream: FirebaseFirestore.instance
+                          .collection('solutions') // Main solutions collection
+                          .doc(widget.solutionId) // Document ID for the solution
+                          .collection('comments') // Subcollection for comments
+                          .orderBy('timestamp', descending: true)
+                          .snapshots(),
+                      builder: (context, commentSnapshot) {
+                        if (commentSnapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
 
+                        if (!commentSnapshot.hasData || commentSnapshot.data!.docs.isEmpty) {
+                          return const Text('No comments yet.', style: TextStyle(color: Colors.white54));
+                        }
+
+                        final comments = commentSnapshot.data!.docs;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: comments.map((doc) {
+                            final data = doc.data() as Map<String, dynamic>;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6.0),
+                              child: RichText(
+                                text: TextSpan(
+                                  style: const TextStyle(color: Colors.white),
+                                  children: [
+                                    TextSpan(
+                                      text: '${data['user']}: ',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber),
+                                    ),
+                                    TextSpan(text: data['text']),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
                     const SizedBox(height: 8),
                   ],
                 ),

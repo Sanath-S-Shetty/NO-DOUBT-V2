@@ -4,6 +4,8 @@ import 'package:no_doubt/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
+
 class askDoubtPage extends StatelessWidget {
   const askDoubtPage({super.key});
 
@@ -32,6 +34,7 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
     final tagsRaw = _tagsController.text.trim();
+    
 
     if (title.isEmpty || description.isEmpty || tagsRaw.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
