@@ -25,33 +25,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-enum SortOption { stars, newest, oldest }
-
 class _HomeScreenState extends State<HomeScreen> {
   final user = FirebaseAuth.instance.currentUser;
-  List<String> userInterests = [];
-  SortOption sortOption = SortOption.newest;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchUserInterests();
-  }
-
-  Future<void> fetchUserInterests() async {
-    if (user != null) {
-      final doc = await FirebaseFirestore.instance
-          .collection('profile')
-          .doc(user!.uid)
-          .get();
-      final data = doc.data();
-      if (data != null && data['interests'] != null) {
-        setState(() {
-          userInterests = List<String>.from(data['interests']);
-        });
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,145 +35,90 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: const Padding(
-          padding: EdgeInsets.all(12.0),
-          child: Text(
-            'HQ',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-          ),
+        leading: IconButton(
+          icon: const Icon(Icons.logout, color: Colors.black),
+          onPressed: () async {
+            await FirebaseAuth.instance.signOut();
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const Option()),
+            );
+          },
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const ProfilePage()),
-                );
-              },
-              child: const Icon(Icons.person_outline, color: Colors.black),
-            ),
+          IconButton(
+            icon: const Icon(Icons.person_outline, color: Colors.black),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+            },
           ),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: userInterests.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('No Doubt',
-                      style:
-                          TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Your Interests',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      DropdownButton<SortOption>(
-                        value: sortOption,
-                        items: const [
-                          DropdownMenuItem(
-                              value: SortOption.newest, child: Text("Newest")),
-                          DropdownMenuItem(
-                              value: SortOption.oldest, child: Text("Oldest")),
-                          DropdownMenuItem(
-                              value: SortOption.stars, child: Text("Stars")),
-                        ],
-                        onChanged: (value) {
-                          if (value != null) {
-                            setState(() {
-                              sortOption = value;
-                            });
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Expanded(child: _buildDoubtList(matching: true)),
-                  const SizedBox(height: 16),
-                  const Text('General Doubts',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Expanded(child: _buildDoubtList(matching: false)),
-                ],
-              ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('No Doubt', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 16),
+            const Text('All Doubts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Expanded(child: _buildDoubtList()),
+          ],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: Colors.blue,
         unselectedItemColor: Colors.grey,
         onTap: (index) {
-          if (index == 2) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const askDoubtPage()));
-          }
           if (index == 0) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const Option()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const homePage()));
           }
           if (index == 1) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const homePage()));
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const AskDoubtPage()));
+          }
+          if (index == 2) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => const Option()));
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.question_answer), label: 'Solve Doubts'),
           BottomNavigationBarItem(icon: Icon(Icons.edit), label: 'Ask Doubt'),
+          BottomNavigationBarItem(icon: Icon(Icons.question_answer), label: 'Solve Doubts'),
         ],
       ),
     );
   }
 
-  Widget _buildDoubtList({required bool matching}) {
+  Widget _buildDoubtList() {
     return StreamBuilder<QuerySnapshot>(
-      stream:
-          FirebaseFirestore.instance.collection('doubts').snapshots(),
+      stream: FirebaseFirestore.instance.collection('Doubt').snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-        List<QueryDocumentSnapshot> docs = snapshot.data!.docs;
+        final docs = snapshot.data!.docs;
 
-        final filteredDocs = docs.where((doc) {
-          final tags = List<String>.from(doc['tags'] ?? []);
-          final overlap =
-              tags.toSet().intersection(userInterests.toSet());
-          return matching ? overlap.isNotEmpty : overlap.isEmpty;
-        }).toList();
-
-        // Sorting
-        if (sortOption == SortOption.stars) {
-          filteredDocs.sort((a, b) =>
-              (b['star'] as List).length.compareTo((a['star'] as List).length));
-        } else if (sortOption == SortOption.newest) {
-          filteredDocs.sort((a, b) => b['time'].compareTo(a['time']));
-        } else if (sortOption == SortOption.oldest) {
-          filteredDocs.sort((a, b) => a['time'].compareTo(b['time']));
-        }
-
-        if (filteredDocs.isEmpty) {
-          return const Text('No doubts found.',
-              style: TextStyle(color: Colors.grey));
+        if (docs.isEmpty) {
+          return const Text('No doubts found.', style: TextStyle(color: Colors.grey));
         }
 
         return ListView.builder(
-          itemCount: filteredDocs.length,
+          itemCount: docs.length,
           itemBuilder: (context, index) {
-            final doubt = filteredDocs[index];
+            final doubt = docs[index];
             return DoubtCard(
               title: doubt['qtitle'],
               description: doubt['description'],
-              author: doubt['uid'],
-              stars: (doubt['star'] as List).length,
+              author: doubt['posted_by'],
+             stars: (doubt['star'] is List) 
+    ? (doubt['star'] as List).length 
+    : (doubt['star'] is Map) 
+        ? (doubt['star'] as Map).keys.length  // Or .values.length, depending on what you want to count
+        : 0,  // Default to 0 if neither a List nor a Map
+
+
               questionId: doubt.id,
             );
           },
@@ -231,7 +151,8 @@ class DoubtCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => AnswerPage(questionId: questionId)),
+            builder: (context) => AnswerPage(questionId: questionId),
+          ),
         );
       },
       child: Container(
@@ -240,17 +161,12 @@ class DoubtCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-                color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))
-          ],
+          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title,
-                style:
-                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             const SizedBox(height: 8),
             Text(description),
             const SizedBox(height: 12),
