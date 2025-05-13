@@ -3,6 +3,7 @@ import 'package:no_doubt/option.dart';
 import 'package:no_doubt/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:no_doubt/colors.dart';
 
 
 
@@ -91,7 +92,9 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       backgroundColor: color.primary,
       appBar: AppBar(
+        backgroundColor: color.text1,
         title: const Text('Ask a Doubt'),
       ),
       body: Padding(
@@ -99,14 +102,17 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
         child: Column(
           children: [
             TextField(
+                style: TextStyle(color: color.text2),
               controller: _titleController,
               decoration: const InputDecoration(
                 labelText: 'Title',
+
                 border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
+                style: TextStyle(color: color.text2),
               controller: _descriptionController,
               maxLines: 4,
               decoration: const InputDecoration(
@@ -116,6 +122,7 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
             ),
             const SizedBox(height: 16),
             TextField(
+                   style: TextStyle(color: color.text2),
               controller: _tagsController,
               decoration: const InputDecoration(
                 labelText: 'Tags (comma separated)',
@@ -124,16 +131,27 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: _submitDoubt,
+
+           
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.amber,
+               shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+               padding: EdgeInsets.symmetric(vertical: 15, horizontal: 100),
+               ),
+              
+               onPressed: _submitDoubt,
               child: const Text('Submit Doubt'),
-            )
+             )
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: color.text1,
         currentIndex: 2,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: color.primary,
         onTap: (index) {
           if (index == 2) return;
           if (index == 0) {

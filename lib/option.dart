@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:no_doubt/askdoubtpage.dart';
 import 'package:no_doubt/home.dart';
+import 'package:no_doubt/colors.dart';
 
 class Option extends StatelessWidget {
   const Option({super.key});
@@ -44,9 +45,10 @@ class Option extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: color.text1,
         currentIndex: 0,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: color.primary,
         onTap: (index) {
           if (index == 2) {
             Navigator.push(

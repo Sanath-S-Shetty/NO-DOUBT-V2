@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:no_doubt/solution.dart';
+import 'package:no_doubt/colors.dart';
 
 class AnswerPage extends StatefulWidget {
   final String questionId;
@@ -25,7 +26,7 @@ class _AnswerPageState extends State<AnswerPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Question Details'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: color.text1,
       ),
       body: Column(
         children: [
@@ -64,7 +65,7 @@ class _AnswerPageState extends State<AnswerPage> {
 
   Widget _buildToggleButtons() {
     return Container(
-      color: Colors.deepPurple,
+      color: color.text1,
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -216,7 +217,7 @@ class _AnswerPageState extends State<AnswerPage> {
           const SizedBox(width: 8),
           ElevatedButton(
             onPressed: _postContent,
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+            style: ElevatedButton.styleFrom(backgroundColor: color.text1),
             child: const Text('Post'),
           ),
         ],

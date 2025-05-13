@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:no_doubt/colors.dart';
 
 class SolutionDetailPage extends StatefulWidget {
   final String solutionId;
@@ -79,7 +80,7 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Full Solution'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: color.text1,
       ),
       backgroundColor: Colors.black,
       body: Padding(
@@ -194,7 +195,7 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                 ElevatedButton(
                   onPressed: addComment,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
+                    backgroundColor: color.text1,
                   ),
                   child: const Text('Post'),
                 ),

@@ -5,6 +5,7 @@ import 'package:no_doubt/askdoubtpage.dart';
 import 'package:no_doubt/option.dart';
 import 'package:no_doubt/profile.dart';
 import 'package:no_doubt/answer.dart';
+import 'package:no_doubt/colors.dart';
 
 class homePage extends StatelessWidget {
   const homePage({super.key});
@@ -31,9 +32,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: color.primary,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: color.text1,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.logout, color: Colors.black),
@@ -60,18 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('No Doubt', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const Text('No Doubt', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color:color.box)),
             const SizedBox(height: 16),
-            const Text('All Doubts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text('All Doubts', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color:color.box)),
             const SizedBox(height: 8),
             Expanded(child: _buildDoubtList()),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: color.text1,
         currentIndex: 1,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
+        unselectedItemColor: color.primary,
         onTap: (index) {
           if (index == 0) {
             Navigator.push(context, MaterialPageRoute(builder: (_) => Option()));
