@@ -1,6 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:no_doubt/colors.dart';
 
 class SolutionDetailPage extends StatefulWidget {
@@ -26,53 +26,104 @@ class SolutionDetailPage extends StatefulWidget {
 class _SolutionDetailPageState extends State<SolutionDetailPage> {
   late int stars;
   late bool isStarred;
-  final TextEditingController _commentController = TextEditingController();
+  final _commentController = TextEditingController();
+  final user = FirebaseAuth.instance.currentUser;
 
   @override
   void initState() {
     super.initState();
     stars = widget.initialStars;
     isStarred = widget.initiallyStarred;
+    fetchStarState();
   }
 
-  void toggleStar() {
-    setState(() {
-      isStarred = !isStarred;
-      stars += isStarred ? 1 : -1;
+  Future<void> fetchStarState() async {
+    final doc = await FirebaseFirestore.instance
+        .collection('solutions')
+        .doc(widget.solutionId)
+        .get();
+
+    final starList = doc.data()?['stars'];
+    if (starList is List) {
+      setState(() {
+        stars = starList.length;
+        isStarred = starList.contains(user?.uid);
+      });
+    }
+  }
+
+  Future<void> toggleStar() async {
+    final docRef = FirebaseFirestore.instance
+        .collection('solutions')
+        .doc(widget.solutionId);
+    final uid = user?.uid;
+    if (uid == null) return;
+
+    try {
+      final doc = await docRef.get();
+
+      if (!doc.exists) {
+        await docRef.set({'stars': [uid]}, SetOptions(merge: true));
+        setState(() {
+          stars = 1;
+          isStarred = true;
+        });
+        return;
+      }
+
+      final data = doc.data();
+      final starList = data?['stars'];
+
+      if (starList is List) {
+        if (starList.contains(uid)) {
+          await docRef.update({'stars': FieldValue.arrayRemove([uid])});
+          setState(() {
+            stars -= 1;
+            isStarred = false;
+          });
+        } else {
+          await docRef.update({'stars': FieldValue.arrayUnion([uid])});
+          setState(() {
+            stars += 1;
+            isStarred = true;
+          });
+        }
+      } else {
+        await docRef.set({'stars': [uid]}, SetOptions(merge: true));
+        setState(() {
+          stars = 1;
+          isStarred = true;
+        });
+      }
+    } catch (e) {
+      print('Error toggling star: $e');
+    }
+  }
+
+  Future<void> addComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty || user == null) return;
+
+    final profileQuery = await FirebaseFirestore.instance
+        .collection('profile')
+        .where('userid', isEqualTo: user!.uid)
+        .get();
+
+    final username = profileQuery.docs.isNotEmpty
+        ? profileQuery.docs.first['username']
+        : 'Anonymous';
+
+    await FirebaseFirestore.instance
+        .collection('solutions')
+        .doc(widget.solutionId)
+        .collection('comments')
+        .add({
+      'user': username,
+      'text': text,
+      'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // TODO: Update Firebase to reflect star change
-    // FirebaseFirestore.instance
-    //     .collection('solutions')
-    //     .doc(widget.solutionId)
-    //     .update({'stars': stars});
-  }
-
-  void addComment() async {
-    final newComment = _commentController.text.trim();
-    if (newComment.isNotEmpty) {
-      
-      final user = FirebaseAuth.instance.currentUser; // Replace with actual logged-in user's name
-      try {
-        await FirebaseFirestore.instance
-            .collection('solutions') // Main solutions collection
-            .doc(widget.solutionId) // Document for the specific solution
-            .collection('comments') // Subcollection for comments
-            .add({
-          'user': user?.email ?? 'Anonymous',
-          'text': newComment,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-
-        setState(() {
-          _commentController.clear();
-        });
-      } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post comment: $e')),
-        );
-      }
-    }
+    _commentController.clear();
   }
 
   @override
@@ -92,14 +143,9 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Solution text
-                    Text(
-                      widget.solutionText,
-                      style: const TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    Text(widget.solutionText,
+                        style: const TextStyle(fontSize: 16, color: Colors.white)),
                     const SizedBox(height: 24),
-
-                    // Star row
                     Row(
                       children: [
                         IconButton(
@@ -109,43 +155,46 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                           ),
                           onPressed: toggleStar,
                         ),
-                        Text('$stars Stars', style: const TextStyle(color: Colors.white)),
+                        Text('$stars Stars',
+                            style: const TextStyle(color: Colors.white)),
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text('— ${widget.author}', style: const TextStyle(color: Colors.grey)),
+                    Text('— ${widget.author}',
+                        style: const TextStyle(color: Colors.grey)),
                     const Divider(color: Colors.grey),
-
                     const SizedBox(height: 16),
                     const Text(
                       'Comments',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.amber),
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.amber),
                     ),
                     const SizedBox(height: 8),
-
-                    // StreamBuilder for fetching comments
                     StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
-                          .collection('solutions') // Main solutions collection
-                          .doc(widget.solutionId) // Document ID for the solution
-                          .collection('comments') // Subcollection for comments
+                          .collection('solutions')
+                          .doc(widget.solutionId)
+                          .collection('comments')
                           .orderBy('timestamp', descending: true)
                           .snapshots(),
-                      builder: (context, commentSnapshot) {
-                        if (commentSnapshot.connectionState == ConnectionState.waiting) {
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
                         }
-
-                        if (!commentSnapshot.hasData || commentSnapshot.data!.docs.isEmpty) {
-                          return const Text('No comments yet.', style: TextStyle(color: Colors.white54));
+                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                          return const Text('No comments yet.',
+                              style: TextStyle(color: Colors.white54));
                         }
 
-                        final comments = commentSnapshot.data!.docs;
-
+                        final comments = snapshot.data!.docs;
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: comments.map((doc) {
                             final data = doc.data() as Map<String, dynamic>;
+                            final username = data['user'] ?? 'Anonymous';
+                            final text = data['text'] ?? '';
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 6.0),
                               child: RichText(
@@ -153,10 +202,12 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                                   style: const TextStyle(color: Colors.white),
                                   children: [
                                     TextSpan(
-                                      text: '${data['user']}: ',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.amber),
+                                      text: '$username: ',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.amber),
                                     ),
-                                    TextSpan(text: data['text']),
+                                    TextSpan(text: text),
                                   ],
                                 ),
                               ),
@@ -165,13 +216,10 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                         );
                       },
                     ),
-                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ),
-
-            // Add comment input at bottom
             Row(
               children: [
                 Expanded(
@@ -187,7 +235,8 @@ class _SolutionDetailPageState extends State<SolutionDetailPage> {
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     ),
                   ),
                 ),

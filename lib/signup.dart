@@ -18,7 +18,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController customInterestController = TextEditingController();
   
   List<String> selectedInterests = [];
-  List<String> predefinedInterests = ['Math', 'Science', 'Coding', 'Art', 'Music'];
+  List<String> predefinedInterests = ['LAO', 'SE', 'TFCS', 'ADA', 'CRP','OS'];
 
   @override
   void dispose() {

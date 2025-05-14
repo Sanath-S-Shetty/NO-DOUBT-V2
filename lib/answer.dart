@@ -116,12 +116,12 @@ class _AnswerPageState extends State<AnswerPage> {
                 .collection('Doubt')
                 .doc(widget.questionId)
                 .collection('solutions')
-                .orderBy(selectedFilter == 'Stars'
-                    ? 'stars'
-                    : selectedFilter == 'Newest'
-                        ? 'timestamp'
-                        : 'timestamp',
-                    descending: selectedFilter != 'Oldest')
+                .orderBy(
+                  selectedFilter == 'Stars'
+                      ? 'stars'
+                      : 'timestamp',
+                  descending: selectedFilter != 'Oldest',
+                )
                 .snapshots(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
@@ -150,7 +150,17 @@ class _AnswerPageState extends State<AnswerPage> {
                       color: Colors.grey[900],
                       child: ListTile(
                         title: Text(data['title'] ?? '', style: const TextStyle(color: Colors.white)),
-                        trailing: const Icon(Icons.star, color: Colors.amber),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.amber),
+                            const SizedBox(width: 4),
+                            Text(
+                              data['stars']?.toString() ?? '0',
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   );

@@ -1,215 +1,92 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:no_doubt/login.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'login.dart';
+import 'option.dart';
 
-class ProfilePage extends StatefulWidget {
+// ----------------- PROFILE PAGE -----------------
+class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfilePage> {
-
-  bool isLoading = false;
-  String username = "loading";
-  Future<void> fetchUsername() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final uid = user.uid;
-      final doc = await FirebaseFirestore.instance.collection('profile').doc(uid).get();
-      final data = doc.data();
-      setState(() {
-        username = data?['username'] ?? 'Anonymous';
-      });
-    }
-  }
-
-
-  void signOut(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Logout'),
-        content: const Text('Are you sure you want to log out?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogout == true) {
-      setState(() {
-        isLoading = true;
-      });
-      try {
-        await FirebaseAuth.instance.signOut();
-        if (!mounted) return;
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
-        );
-      } catch (e) {
-        if (!mounted) return;
-        setState(() {
-          isLoading = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Error signing out. Please try again.')),
-        );
-      }
-    }
-  }
-
-
-  @override
   Widget build(BuildContext context) {
-    const textColor = Colors.amber;
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final userDoc = FirebaseFirestore.instance.collection('profile').doc(uid);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile'), centerTitle: true),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'John Doe',
-              style: TextStyle(
-                color: textColor,
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 6),
-            const Text(
-              'john.doe@example.com',
-              style: TextStyle(color: Colors.white70, fontSize: 16),
-            ),
-            const SizedBox(height: 24),
+      appBar: AppBar(
+        title: const Text('Profile'),
+        centerTitle: true,
+        backgroundColor: Colors.deepPurple,
+      ),
+      backgroundColor: Colors.black,
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: userDoc.snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
-            const Text(
-              'Interests',
-              style: TextStyle(
-                color: textColor,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 10,
-              children: const [
-                Chip(label: Text('Math'), backgroundColor: Colors.amber),
-                Chip(label: Text('AI'), backgroundColor: Colors.amber),
-                Chip(label: Text('Programming'), backgroundColor: Colors.amber),
-                Chip(label: Text('Flutter'), backgroundColor: Colors.amber),
-              ],
-            ),
-            const SizedBox(height: 24),
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final username = data['username'] ?? 'No Name';
+          final interests = List<String>.from(data['interests'] ?? []);
 
-            const Text(
-              'Questions Solved',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
-            const Text(
-              '42',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            const Text(
-              'Questions Asked',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
-            const Text(
-              '13',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            const Text(
-              'Badges',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: const [
-                Chip(label: Text('Rookie'), backgroundColor: Colors.purple),
-                Chip(label: Text('Helper'), backgroundColor: Colors.purple),
-                Chip(label: Text('AI Pro'), backgroundColor: Colors.purple),
-              ],
-            ),
-            const SizedBox(height: 24),
-            //const Spacer(),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const EditProfilePage()),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(username,
+                    style: const TextStyle(
+                        color: Colors.amber, fontSize: 28, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                const Text('Interests',
+                    style: TextStyle(
+                        color: Colors.amber, fontSize: 20, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 10,
+                  children:
+                      interests.map((i) => Chip(label: Text(i), backgroundColor: Colors.amber)).toList(),
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                        context, MaterialPageRoute(builder: (_) => const EditProfilePage()));
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                  child: const Text('Edit Profile', style: TextStyle(color: Colors.black)),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                        context, MaterialPageRoute(builder: (_) => const Option()));
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+                  child: const Text('Back to Options', style: TextStyle(color: Colors.white)),
+                ),
+                const Spacer(),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await FirebaseAuth.instance.signOut();
+                      Navigator.pushReplacement(
+                          context, MaterialPageRoute(builder: (_) => const LoginPage()));
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+                    child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
                   ),
                 ),
-                child: const Text(
-                  'Edit Profile',
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
+              ],
             ),
-
-            //const SizedBox(height: 12),
-            const Spacer(),
-            // Sign Out button
-            Center(
-              child: ElevatedButton(
-                onPressed: ()  {
-                  signOut(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text(
-                  'Sign Out',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
+// ----------------- EDIT PROFILE PAGE -----------------
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -218,19 +95,26 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  final TextEditingController _usernameController = TextEditingController(
-    text: "John Doe",
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: "john.doe@example.com",
-  );
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+  final _usernameController = TextEditingController();
+  List<String> interests = [];
 
-  List<String> interests = ['Math', 'AI', 'Flutter'];
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final doc = await FirebaseFirestore.instance.collection('profile').doc(uid).get();
+    final data = doc.data()!;
+    _usernameController.text = data['username'] ?? '';
+    interests = List<String>.from(data['interests'] ?? []);
+    setState(() {});
+  }
 
   void _removeInterest(String interest) {
-    setState(() {
-      interests.remove(interest);
-    });
+    setState(() => interests.remove(interest));
   }
 
   void _addInterest() {
@@ -238,134 +122,101 @@ class _EditProfilePageState extends State<EditProfilePage> {
       context: context,
       backgroundColor: Colors.grey[900],
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        final TextEditingController _customController = TextEditingController();
-        final List<String> presets = ['LAO', 'TFCS', 'OS', 'CRP'];
-
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) {
+        final customController = TextEditingController();
+        final List<String> presets = ['LAO', 'SE', 'TFCS', 'ADA', 'CRP','OS'];
         return Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Add Interest',
-                style: TextStyle(
-                  color: Colors.amber,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Text('Add Interest', style: TextStyle(color: Colors.amber, fontSize: 18)),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 10,
+              children: presets.map((preset) {
+                return ActionChip(
+                  label: Text(preset),
+                  backgroundColor: Colors.amber,
+                  onPressed: () {
+                    if (!interests.contains(preset)) {
+                      setState(() => interests.add(preset));
+                    }
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ),
+            const Divider(color: Colors.white24, height: 30),
+            TextField(
+              controller: customController,
+              maxLength: 15,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'Custom Interest',
+                labelStyle: TextStyle(color: Colors.white),
+                enabledBorder:
+                    UnderlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
               ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 10,
-                children:
-                    presets.map((preset) {
-                      return ActionChip(
-                        label: Text(preset),
-                        backgroundColor: Colors.amber,
-                        onPressed: () {
-                          setState(() {
-                            if (!interests.contains(preset))
-                              interests.add(preset);
-                          });
-                          Navigator.pop(context);
-                        },
-                      );
-                    }).toList(),
-              ),
-              const Divider(color: Colors.white24, height: 30),
-              TextField(
-                controller: _customController,
-                maxLength: 15,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Custom Interest',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.amber),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.amber),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-                onPressed: () {
-                  final custom = _customController.text.trim();
-                  if (custom.isNotEmpty && !interests.contains(custom)) {
-                    setState(() {
-                      interests.add(custom);
-                    });
-                  }
-                  Navigator.pop(context);
-                },
-                child: const Text('Add', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+              onPressed: () {
+                final custom = customController.text.trim();
+                if (custom.isNotEmpty && !interests.contains(custom)) {
+                  setState(() => interests.add(custom));
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('Add', style: TextStyle(color: Colors.white)),
+            )
+          ]),
         );
       },
     );
+  }
+
+  Future<void> _saveChanges() async {
+    final updatedUsername = _usernameController.text.trim();
+    await FirebaseFirestore.instance.collection('profile').doc(uid).update({
+      'username': updatedUsername,
+      'interests': interests,
+    });
+    if (context.mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     const textColor = Colors.amber;
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(title: const Text('Edit Profile'), backgroundColor: Colors.deepPurple),
+      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: ListView(
           children: [
-            const Text(
-              'Username',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
+            const Text('Username', style: TextStyle(color: textColor, fontSize: 18)),
             TextField(
               controller: _usernameController,
               style: const TextStyle(color: Colors.white),
               decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.amber),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Email',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
-            TextField(
-              controller: _emailController,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.amber),
-                ),
+                enabledBorder:
+                    UnderlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Interests',
-              style: TextStyle(color: textColor, fontSize: 18),
-            ),
+            const Text('Interests', style: TextStyle(color: textColor, fontSize: 18)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 10,
               runSpacing: 10,
               children: [
-                ...interests.map(
-                  (interest) => Chip(
-                    label: Text(interest),
-                    backgroundColor: Colors.amber,
-                    deleteIcon: const Icon(Icons.close, size: 18),
-                    onDeleted: () => _removeInterest(interest),
-                  ),
-                ),
+                ...interests.map((interest) => Chip(
+                      label: Text(interest),
+                      backgroundColor: Colors.amber,
+                      deleteIcon: const Icon(Icons.close, size: 18),
+                      onDeleted: () => _removeInterest(interest),
+                    )),
                 GestureDetector(
                   onTap: _addInterest,
                   child: Chip(
@@ -374,33 +225,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     labelStyle: const TextStyle(color: Colors.white),
                   ),
                 ),
-                const Spacer(),
-                // Sign Out button
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(
-                        context,
-                      ); // Replace with actual sign out logic if needed
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text(
-                      'SAVE',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: _saveChanges,
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+                  child: const Text('Save'),
                 ),
               ],
             ),
           ],
         ),
-      ),
-    );
-  }
+     ),
+);
+}
 }
