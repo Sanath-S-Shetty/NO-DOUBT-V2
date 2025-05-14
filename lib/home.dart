@@ -104,9 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       DropdownButton<SortOption>(
                         value: sortOption,
                         items: const [
-                          DropdownMenuItem(value: SortOption.newest, child: Text("Newest",selectionColor: color.box,)),
-                          DropdownMenuItem(value: SortOption.oldest, child: Text("Oldest")),
-                          DropdownMenuItem(value: SortOption.stars, child: Text("Stars")),
+                          DropdownMenuItem(value: SortOption.newest, child: Text("Newest", style: TextStyle(color: color.box),)),
+                          DropdownMenuItem(value: SortOption.oldest, child: Text("Oldest",style: TextStyle(color: color.box),)),
+                          DropdownMenuItem(value: SortOption.stars, child: Text("Stars",style: TextStyle(color: color.box))),
                         ],
                         onChanged: (value) {
                           if (value != null) {

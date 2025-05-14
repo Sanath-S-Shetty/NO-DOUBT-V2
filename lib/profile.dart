@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'login.dart';
 import 'option.dart';
+import 'colors.dart';
 
 // ----------------- PROFILE PAGE -----------------
 class ProfilePage extends StatelessWidget {
@@ -17,10 +18,10 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Profile'),
         centerTitle: true,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: color.text1,
       ),
       backgroundColor: Colors.black,
-      body: StreamBuilder<DocumentSnapshot>(
+     body: StreamBuilder<DocumentSnapshot>(
         stream: userDoc.snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
@@ -73,7 +74,7 @@ class ProfilePage extends StatelessWidget {
                       Navigator.pushReplacement(
                           context, MaterialPageRoute(builder: (_) => const LoginPage()));
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+                    style: ElevatedButton.styleFrom(backgroundColor: color.text1),
                     child: const Text('Sign Out', style: TextStyle(color: Colors.white)),
                   ),
                 ),
@@ -118,63 +119,76 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _addInterest() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-      builder: (context) {
-        final customController = TextEditingController();
-        final List<String> presets = ['LAO', 'SE', 'TFCS', 'ADA', 'CRP','OS'];
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('Add Interest', style: TextStyle(color: Colors.amber, fontSize: 18)),
-            const SizedBox(height: 16),
-            Wrap(
-              spacing: 10,
-              children: presets.map((preset) {
-                return ActionChip(
-                  label: Text(preset),
-                  backgroundColor: Colors.amber,
-                  onPressed: () {
-                    if (!interests.contains(preset)) {
-                      setState(() => interests.add(preset));
-                    }
-                    Navigator.pop(context);
-                  },
-                );
-              }).toList(),
-            ),
-            const Divider(color: Colors.white24, height: 30),
-            TextField(
-              controller: customController,
-              maxLength: 15,
-              style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Custom Interest',
-                labelStyle: TextStyle(color: Colors.white),
-                enabledBorder:
-                    UnderlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true, // Important: allows keyboard-safe area resizing
+    backgroundColor: Colors.grey[900],
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      final customController = TextEditingController();
+      final List<String> presets = ['LAO', 'SE', 'TFCS', 'ADA', 'CRP', 'OS'];
+
+      return Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          left: 20,
+          right: 20,
+          top: 20,
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Add Interest', style: TextStyle(color: Colors.amber, fontSize: 18)),
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 10,
+                children: presets.map((preset) {
+                  return ActionChip(
+                    label: Text(preset),
+                    backgroundColor: Colors.amber,
+                    onPressed: () {
+                      if (!interests.contains(preset)) {
+                        setState(() => interests.add(preset));
+                      }
+                      Navigator.pop(context);
+                    },
+                  );
+                }).toList(),
               ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-              onPressed: () {
-                final custom = customController.text.trim();
-                if (custom.isNotEmpty && !interests.contains(custom)) {
-                  setState(() => interests.add(custom));
-                }
-                Navigator.pop(context);
-              },
-              child: const Text('Add', style: TextStyle(color: Colors.white)),
-            )
-          ]),
-        );
-      },
-    );
-  }
+              const Divider(color: Colors.white24, height: 30),
+              TextField(
+                controller: customController,
+                maxLength: 15,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  labelText: 'Custom Interest',
+                  labelStyle: TextStyle(color: Colors.white),
+                  enabledBorder:
+                      UnderlineInputBorder(borderSide: BorderSide(color: Colors.amber)),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                onPressed: () {
+                  final custom = customController.text.trim();
+                  if (custom.isNotEmpty && !interests.contains(custom)) {
+                    setState(() => interests.add(custom));
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text('Add', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
 
   Future<void> _saveChanges() async {
     final updatedUsername = _usernameController.text.trim();
@@ -189,7 +203,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     const textColor = Colors.amber;
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile'), backgroundColor: Colors.deepPurple),
+      appBar: AppBar(title: const Text('Edit Profile'), backgroundColor: color.text1),
       backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -238,13 +252,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 ElevatedButton(
                   onPressed: _saveChanges,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple),
+                  style: ElevatedButton.styleFrom(backgroundColor: color.text1),
                   child: const Text('Save'),
                 ),
               ],
             ),
           ],
         ),
+  
      ),
 );
 }
