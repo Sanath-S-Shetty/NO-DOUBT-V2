@@ -38,6 +38,14 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
+    // Email domain check
+    if (!emailController.text.trim().endsWith('@bmsce.ac.in')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Please use your @bmsce.ac.in email to sign up")),
+      );
+      return;
+    }
+
     if (selectedInterests.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Please select at least one interest")),
