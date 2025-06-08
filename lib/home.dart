@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   MaterialPageRoute(builder: (context) => const ProfilePage()),
                 );
               },
-              child: const Icon(Icons.person_outline, color: Colors.black),
+              child: const Icon(Icons.person_outline, color: Colors.white),
             ),
           ),
         ],
@@ -103,9 +103,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Text('Your Interests', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: color.box)),
                       DropdownButton<SortOption>(
                         value: sortOption,
+                        dropdownColor: color.primary,
                         items: const [
-                          DropdownMenuItem(value: SortOption.newest, child: Text("Newest", style: TextStyle(color: color.box),)),
-                          DropdownMenuItem(value: SortOption.oldest, child: Text("Oldest",style: TextStyle(color: color.box),)),
+                          DropdownMenuItem(value: SortOption.newest, child: Text("Newest", style: TextStyle(color:color.box))),
+                          DropdownMenuItem(value: SortOption.oldest, child: Text("Oldest",style: TextStyle(color:color.box))),
                           DropdownMenuItem(value: SortOption.stars, child: Text("Stars",style: TextStyle(color: color.box))),
                         ],
                         onChanged: (value) {
@@ -257,7 +258,7 @@ class DoubtCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Color(0xffFFFDD0),
           borderRadius: BorderRadius.circular(16),
           boxShadow: const [
             BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),

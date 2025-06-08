@@ -95,7 +95,8 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
        backgroundColor: color.primary,
       appBar: AppBar(
         backgroundColor: color.text1,
-        title: const Text('Ask a Doubt'),
+        title: const Text('Ask a Doubt',style: TextStyle(color: color.box),),
+        iconTheme: const IconThemeData(color: Colors.grey),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -151,7 +152,7 @@ class _AskDoubtPageState extends State<AskDoubtPage> {
         backgroundColor: color.text1,
         currentIndex: 2,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: color.primary,
+        unselectedItemColor: Colors.grey,
         onTap: (index) {
           if (index == 2) return;
           if (index == 0) {

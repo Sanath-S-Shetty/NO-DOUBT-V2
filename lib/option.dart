@@ -15,7 +15,7 @@ class Option extends StatelessWidget {
         backgroundColor: Colors.black,
         title: Text(
           'Home',
-          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+          style: TextStyle(color: color.box, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -48,7 +48,7 @@ class Option extends StatelessWidget {
         backgroundColor: color.text1,
         currentIndex: 0,
         selectedItemColor: Colors.blue,
-        unselectedItemColor: color.primary,
+        unselectedItemColor: Colors.grey,
         onTap: (index) {
           if (index == 2) {
             Navigator.push(
